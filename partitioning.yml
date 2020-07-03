@@ -39,7 +39,23 @@
         part_type: 'primary'
         unit: 'MiB'
         flags: ['raid']
+    raid_arrays:
+      - name: 'md0'
+        devices: ['/dev/sda2', '/dev/sdb2']
+        level: 'raid1'
+        metadata: '0.9'
+      - name: 'md1'
+        devices: ['/dev/sda3', '/dev/sdb3']
+        level: 'raid0'
+      - name: 'md2'
+        devices: ['/dev/sda4', '/dev/sdb4']
+        level: 'raid0'
   tasks:
+    - name: 'Stop existing arrays'
+      command: "mdadm --stop /dev/{{ item['name'] }}"
+      when: ansible_facts['devices'][item['name']] is defined
+      loop: "{{ raid_arrays }}"
+
     - name: 'Include disk partition erasure logic'
       include_tasks: 'tasks/delete_disk_partitions.yml'
       loop: "{{ disks }}"
@@ -57,3 +73,12 @@
 
     - name: 'Flush handlers to inform the kernel of the new partitions'
       meta: 'flush_handlers'
+
+    - name: 'Create arrays'
+      command: >-
+        mdadm --create /dev/{{ item['name'] }}
+        --level {{ item['level'] }}
+        --raid-devices {{ item['devices'] | length }}
+        --metadata {{ item['metadata'] | default('1.2') }}
+        {{ ' '.join(item['devices']) }}
+      loop: "{{ raid_arrays }}"
