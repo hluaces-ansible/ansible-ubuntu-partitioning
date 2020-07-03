@@ -11,6 +11,7 @@
     unit: "{{ _partition['unit'] | default(omit) }}"
     flags: "{{ _partition['flags'] | default(omit) }}"
     number: "{{ _partition_number + 1 }}"
+    state: 'present'
   notify: ['reload udev', 'reload systemd']
   loop: "{{ partitions }}"
   loop_control:
