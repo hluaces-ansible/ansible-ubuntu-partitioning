@@ -18,6 +18,11 @@
       when: ansible_facts['devices'][item['name']] is defined
       loop: "{{ raid_arrays }}"
 
+    - name: 'Remove existing arrays'
+      command: "mdadm --remove /dev/{{ item['name'] }}"
+      when: ansible_facts['devices'][item['name']] is defined
+      loop: "{{ raid_arrays }}"
+
     - name: 'Include disk partition erasure logic'
       include_tasks: 'tasks/delete_disk_partitions.yml'
       loop: "{{ disks }}"
@@ -53,4 +58,5 @@
         --type={{ item['type'] }}
         -d -
         {{ item['device'] }}
+      no_log: true
       loop: "{{ luk_devices }}"
