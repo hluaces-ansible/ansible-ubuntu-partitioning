@@ -47,7 +47,7 @@
 
     - name: 'Create LUK devices'
       shell: >-
-        echo {{ item['password'] }} |
+        echo -n {{ item['password'] }} |
         cryptsetup luksFormat
         -q
         --type={{ item['type'] }}
