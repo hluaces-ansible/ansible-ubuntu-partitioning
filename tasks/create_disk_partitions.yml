@@ -3,11 +3,16 @@
 - name: "Create disk partitions for {{ _disk }}"
   parted:
     device: "{{ _disk }}"
-    name: "{{ _disk['name'] | default(omit) }}"
-    part_start: "{{ _disk['part_start'] | default(omit) }}"
-    part_end: "{{ _disk['part_end'] | default(omit) }}"
-    part_type: "{{ _disk['part_type'] | default(omit) }}"
-    unit: "{{ _disk['unit'] | default(omit) }}"
-    flags: "{{ _disk['flags'] | default(omit) }}"
+    name: "{{ _partition['name'] | default(omit) }}"
+    label: "{{ _partition['label'] | default('gpt') }}"
+    part_start: "{{ _partition['part_start'] | default(omit) }}"
+    part_end: "{{ _partition['part_end'] | default(omit) }}"
+    part_type: "{{ _partition['part_type'] | default(omit) }}"
+    unit: "{{ _partition['unit'] | default(omit) }}"
+    flags: "{{ _partition['flags'] | default(omit) }}"
     number: "{{ _partition_number }}"
   notify: ['reload udev', 'reload systemd']
+  loop: "{{ partitions }}"
+  loop_control:
+    loop_var: _partition
+    index_var: _partition_number
