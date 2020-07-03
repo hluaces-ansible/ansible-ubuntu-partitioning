@@ -10,46 +10,8 @@
     - name: 'reload systemd'
       systemd:
         daemon_reload: true
-  vars:
-    disks:
-      - '/dev/sda'
-      - '/dev/sdb'
-    partitions:
-      - name: 'efi'
-        part_start: '1MiB'
-        part_end: '513MiB'
-        part_type: 'primary'
-        unit: 'MiB'
-        flags: ['esp']
-      - name: 'boot'
-        part_start: '513MiB'
-        part_end: '1025MiB'
-        part_type: 'primary'
-        unit: 'MiB'
-        flags: ['raid']
-      - name: 'swap'
-        part_start: '1025MiB'
-        part_end: '2047MiB'
-        part_type: 'primary'
-        unit: 'MiB'
-        flags: ['raid']
-      - name: 'root'
-        part_start: '2047MiB'
-        part_end: '100%'
-        part_type: 'primary'
-        unit: 'MiB'
-        flags: ['raid']
-    raid_arrays:
-      - name: 'md0'
-        devices: ['/dev/sda2', '/dev/sdb2']
-        level: 'raid1'
-        metadata: '0.9'
-      - name: 'md1'
-        devices: ['/dev/sda3', '/dev/sdb3']
-        level: 'raid0'
-      - name: 'md2'
-        devices: ['/dev/sda4', '/dev/sdb4']
-        level: 'raid0'
+  vars_files:
+    - 'vars/main.yml'
   tasks:
     - name: 'Stop existing arrays'
       command: "mdadm --stop /dev/{{ item['name'] }}"
@@ -82,3 +44,13 @@
         --metadata {{ item['metadata'] | default('1.2') }}
         {{ ' '.join(item['devices']) }}
       loop: "{{ raid_arrays }}"
+
+    - name: 'Create LUK devices'
+      shell: >-
+        echo {{ item['password'] }} |
+        cryptsetup luksFormat
+        -q
+        --type={{ item['type'] }}
+        -d -
+        {{ item['device'] }}
+      loop: "{{ luk_devices }}"

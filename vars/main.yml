@@ -1,0 +1,83 @@
+---
+
+# Disks that will be worked on. The partitions on these disks will be erased.
+disks:
+  - '/dev/sda'
+  - '/dev/sdb'
+
+# List of dictionaries of partitions that will be created on both disks.
+#
+# Each entry of the list can contain any parameter that the "parted" module
+# for Ansible is able to manage.
+#
+# See:
+# https://docs.ansible.com/ansible/latest/modules/parted_module.html
+partitions:
+  - name: 'efi'
+    part_start: '1MiB'
+    part_end: '513MiB'
+    part_type: 'primary'
+    unit: 'MiB'
+    flags: ['esp']
+  - name: 'boot'
+    part_start: '513MiB'
+    part_end: '1025MiB'
+    part_type: 'primary'
+    unit: 'MiB'
+    flags: ['raid']
+  - name: 'swap'
+    part_start: '1025MiB'
+    part_end: '2047MiB'
+    part_type: 'primary'
+    unit: 'MiB'
+    flags: ['raid']
+  - name: 'root'
+    part_start: '2047MiB'
+    part_end: '100%'
+    part_type: 'primary'
+    unit: 'MiB'
+    flags: ['raid']
+
+# List of dictionaries of raid devices that will be set up.
+#
+# Format:
+#
+# - name: device name on /dev for the array
+#   devices: list of paths to the partitions that will be forming the array
+#   level: raid level of the array
+#   metadata: metadata level of the array
+# - name: another partition
+#   ...
+raid_arrays:
+  - name: 'md0'
+    devices: ['/dev/sda2', '/dev/sdb2']
+    level: 'raid1'
+    metadata: '0.9'
+  - name: 'md1'
+    devices: ['/dev/sda3', '/dev/sdb3']
+    level: 'raid0'
+  - name: 'md2'
+    devices: ['/dev/sda4', '/dev/sdb4']
+    level: 'raid0'
+
+# List of LUKs devices that will be created.
+#
+# See:
+# https://docs.ansible.com/ansible/latest/modules/luks_device_module.html
+luk_devices:
+  - name: 'LUKS_EFI'
+    device: '/dev/md0'
+    password: 'chu'
+    type: 'luks1'
+  - name: 'LUKS_BOOT'
+    device: '/dev/md0'
+    password: 'chu'
+    type: 'luks2'
+  - name: 'LUKS_SWAP'
+    device: '/dev/md1'
+    password: 'chu'
+    type: 'luks2'
+  - name: 'LUKS_ROOT'
+    device: '/dev/md2'
+    password: 'chu'
+    type: 'luks2'
