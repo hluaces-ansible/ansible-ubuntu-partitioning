@@ -10,7 +10,7 @@
     part_type: "{{ _partition['part_type'] | default(omit) }}"
     unit: "{{ _partition['unit'] | default(omit) }}"
     flags: "{{ _partition['flags'] | default(omit) }}"
-    number: "{{ _partition_number }}"
+    number: "{{ _partition_number + 1 }}"
   notify: ['reload udev', 'reload systemd']
   loop: "{{ partitions }}"
   loop_control:
