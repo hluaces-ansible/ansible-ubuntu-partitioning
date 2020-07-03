@@ -14,9 +14,48 @@
     disks:
       - '/dev/sda'
       - '/dev/sdb'
+    partitions:
+      - name: 'efi'
+        part_start: '1MiB'
+        part_end: '513MiB'
+        part_type: 'primary'
+        unit: 'MiB'
+        flags: ['esp']
+      - name: 'boot'
+        part_start: '513MiB'
+        part_end: '1025MiB'
+        part_type: 'primary'
+        unit: 'MiB'
+        flags: ['raid']
+      - name: 'swap'
+        part_start: '1025MiB'
+        part_end: '2047MiB'
+        part_type: 'primary'
+        unit: 'MiB'
+        flags: ['raid']
+      - name: 'root'
+        part_start: '2047MiB'
+        part_end: '100%'
+        part_type: 'primary'
+        unit: 'MiB'
+        flags: ['raid']
   tasks:
-    - name: 'Delete disks partitions'
-      include_tasks: 'delete_disks_partitions.yml'
+    - name: 'Include disk partition erasure logic'
+      include_tasks: 'tasks/delete_disk_partitions.yml'
       loop: "{{ disks }}"
       loop_control:
         loop_var: _disk
+
+    - name: 'Create disk labels'
+      parted:
+        device: "{{ item }}"
+        state: 'present'
+        label: 'gpt'
+      loop: "{{ disks }}"
+
+    - name: 'Include disk partition creation logic'
+      include_tasks: 'tasks/create_disk_partitions.yml'
+      loop: "{{ disks }}"
+      loop_control:
+        loop_var: _disk
+        index_var: _partition_number

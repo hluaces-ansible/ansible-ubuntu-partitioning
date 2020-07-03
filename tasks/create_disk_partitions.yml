@@ -1,0 +1,13 @@
+---
+
+- name: "Create disk partitions for {{ _disk }}"
+  parted:
+    device: "{{ _disk }}"
+    name: "{{ _disk['name'] | default(omit) }}"
+    part_start: "{{ _disk['part_start'] | default(omit) }}"
+    part_end: "{{ _disk['part_end'] | default(omit) }}"
+    part_type: "{{ _disk['part_type'] | default(omit) }}"
+    unit: "{{ _disk['unit'] | default(omit) }}"
+    flags: "{{ _disk['flags'] | default(omit) }}"
+    number: "{{ _partition_number }}"
+  notify: ['reload udev', 'reload systemd']
