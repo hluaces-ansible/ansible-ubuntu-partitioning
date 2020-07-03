@@ -1,0 +1,16 @@
+---
+
+- name: "Get partitions for disk {{ _disk }}"
+  parted:
+    device: "{{ _disk }}"
+    state: 'info'
+    unit: 'MiB'
+  register: _disk_status
+
+- name: "Delete partitions for disk {{ _disk }}"
+  parted:
+    device: "{{ _disk }}"
+    number: "{{ item['num'] }}"
+    state: 'absent'
+  loop: "{{ _disk_status['partitions'] }}"
+  notify: ['reload udev', 'reload systemd']

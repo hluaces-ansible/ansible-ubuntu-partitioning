@@ -1,0 +1,22 @@
+---
+
+- name: 'Setup local partitioning for a RAID encrypted Ubuntu install'
+  hosts: localhost
+  connection: local
+  handlers:
+    - name: 'reload udev'
+      command: 'udevadm settle'
+
+    - name: 'reload systemd'
+      systemd:
+        daemon_reload: true
+  vars:
+    disks:
+      - '/dev/sda'
+      - '/dev/sdb'
+  tasks:
+    - name: 'Delete disks partitions'
+      include_tasks: 'delete_disks_partitions.yml'
+      loop: "{{ disks }}"
+      loop_control:
+        loop_var: _disk
