@@ -1,0 +1,10 @@
+---
+
+- name: 'Stop tha array'
+  command: "mdadm --stop /dev/{{ _array }}"
+
+- name: 'Remove the superblock for the array devices'
+  command: "mdadm --zero-superblock {{ _device }}"
+  loop: "{{ _array['devices'] }}"
+  loop_control:
+    loop_var: _device

@@ -20,9 +20,11 @@
       loop: "{{ luks_devices }}"
 
     - name: 'Remove existing arrays'
-      command: "mdadm --stop /dev/{{ item['name'] }}"
-      when: ansible_facts['devices'][item['name']] is defined
+      include_tasks: 'tasks/delete_array.yml'
+      when: ansible_facts['devices'][_array['name']] is defined
       loop: "{{ raid_arrays }}"
+      loop_control:
+        loop_var: _array
 
     - name: 'Flush handlers to inform the kernel of the new partitions'
       meta: 'flush_handlers'
