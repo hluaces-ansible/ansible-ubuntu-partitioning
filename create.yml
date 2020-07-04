@@ -29,6 +29,7 @@
         --raid-devices {{ item['devices'] | length }}
         --metadata {{ item['metadata'] | default('1.2') }}
         {{ ' '.join(item['devices']) }}
+      when: ansible_facts['devices'][item['name']] is not defined
       loop: "{{ raid_arrays }}"
 
     - name: 'Include logic for the creation of LUK devices'
