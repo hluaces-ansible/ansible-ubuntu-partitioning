@@ -33,7 +33,7 @@
       loop: "{{ raid_arrays }}"
 
     - name: 'Include logic for the creation of LUK devices'
-      include_tasks: 'tasks/create_luk_devices.yml'
+      include_tasks: 'tasks/create_luks_devices.yml'
 
     - name: 'Create filesystems'
       filesystem:
