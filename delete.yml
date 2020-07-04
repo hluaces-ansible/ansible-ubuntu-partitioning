@@ -15,7 +15,7 @@
   tasks:
     - name: 'Close LUKS devices'
       luks_device_reloaded:
-        name: "{{ item.name }}"
+        name: "{{ item.device }}"
         state: 'absent'
       loop: "{{ luks_devices }}"
 
