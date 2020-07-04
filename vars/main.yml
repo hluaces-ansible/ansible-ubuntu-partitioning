@@ -64,7 +64,7 @@ raid_arrays:
 #
 # See:
 # https://docs.ansible.com/ansible/latest/modules/luks_device_module.html
-luk_devices:
+luks_devices:
   - name: 'LUKS_EFI'
     device: '/dev/md0'
     password: 'chu'
@@ -72,12 +72,9 @@ luk_devices:
   - name: 'LUKS_BOOT'
     device: '/dev/md0'
     password: 'chu'
-    type: 'luks2'
   - name: 'LUKS_SWAP'
     device: '/dev/md1'
     password: 'chu'
-    type: 'luks2'
   - name: 'LUKS_ROOT'
     device: '/dev/md2'
     password: 'chu'
-    type: 'luks2'
