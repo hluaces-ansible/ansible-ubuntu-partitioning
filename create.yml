@@ -31,11 +31,14 @@
         {{ ' '.join(item['devices']) }}
       loop: "{{ raid_arrays }}"
 
-    - name: 'Create LUKS devices'
-      luks_device_reloaded:
-        name: "{{ item.name }}"
-        device: "{{ item.device }}"
-        state: 'opened'
-        keyfile: "{{ item.keyfile }}"
-        type: "{{ item.type | default(omit) }}"
-      loop: "{{ luks_devices }}"
+    - name: 'Include logic for the creation of LUK devices'
+      include_tasks: 'tasks/create_luk_devices.yml'
+
+    - name: 'Create filesystems'
+      filesystem:
+        dev: "{{ item.dev }}"
+        fstype: "{{ item.fstype }}"
+        opts: "{{ item.opts | default(omit) }}"
+        force: "{{ item.force | default(omit) }}"
+        resizefs: "{{ item.resizefs | default(omit) }}"
+      loop: "{{ filesystems }}"

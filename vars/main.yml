@@ -1,5 +1,8 @@
 ---
 
+# Temporary directory used to sture the keyfiles for LUKS encrypted devices
+keyfile_path: '/root/luk_keyfiles'
+
 # Disks that will be worked on. The partitions on these disks will be erased.
 disks:
   - '/dev/sda'
@@ -65,16 +68,31 @@ raid_arrays:
 # See:
 # https://docs.ansible.com/ansible/latest/modules/luks_device_module.html
 luks_devices:
-  - name: 'LUKS_EFI'
-    device: '/dev/md0'
-    password: 'chu'
-    type: 'luks1'
   - name: 'LUKS_BOOT'
     device: '/dev/md0'
-    password: 'chu'
+    keyfile: 'default'
+    type: 'luks1'
   - name: 'LUKS_SWAP'
     device: '/dev/md1'
-    password: 'chu'
+    keyfile: 'default'
   - name: 'LUKS_ROOT'
     device: '/dev/md2'
-    password: 'chu'
+    keyfile: 'default'
+
+# List of dictionarios of filesystems to create.
+#
+# Each entry of the list can use any key compatible with the filesystem
+# Ansible module.
+#
+# See:
+# https://docs.ansible.com/ansible/latest/modules/filesystem_module.html
+filesystems:
+  - dev: '/dev/sda1'
+    fstype: 'vfat'
+    opts: '-F32'
+  - dev: '/dev/mapper/LUKS_BOOT'
+    fstype: 'ext4'
+  - dev: '/dev/mapper/LUKS_SWAP'
+    fstype: 'swap'
+  - dev: '/dev/mapper/LUKS_ROOT'
+    fstype: 'ext4'
