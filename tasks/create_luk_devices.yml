@@ -14,7 +14,7 @@
     dest: "{{ keyfile_path }}/{{ item.keyfile }}"
     force: true
     owner: "{{ ansible_user }}"
-    group: "{{ ansible_group }}"
+    group: "{{ ansible_user }}"
     mode: '0600'
   loop: "{{ luks_devices }}"
 
