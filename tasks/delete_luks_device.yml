@@ -7,6 +7,6 @@
 
 - name: "Delete LUKS device {{ _luks_device['name'] }}"
   luks_device_reloaded:
-    device: "{{ item['device'] }}"
+    device: "{{ _luks_device['device'] }}"
     state: 'absent'
   when: _is_luks.stat.exists | bool

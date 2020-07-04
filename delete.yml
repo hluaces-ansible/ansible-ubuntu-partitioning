@@ -14,7 +14,7 @@
     - 'vars/main.yml'
   tasks:
     - name: 'Include LUKS devices deletion logic'
-      include_tasks: 'delete_luk_devices.yml'
+      include_tasks: 'tasks/delete_luks_device.yml'
       loop: "{{ luks_devices }}"
       loop_control:
         loop_var: _luks_device
