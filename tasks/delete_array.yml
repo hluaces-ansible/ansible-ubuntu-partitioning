@@ -1,7 +1,7 @@
 ---
 
 - name: 'Stop tha array'
-  command: "mdadm --stop /dev/{{ _array }}"
+  command: "mdadm --stop /dev/{{ _array['name'] }}"
 
 - name: 'Remove the superblock for the array devices'
   command: "mdadm --zero-superblock {{ _device }}"
