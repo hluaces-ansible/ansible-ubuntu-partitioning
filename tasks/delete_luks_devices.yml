@@ -1,0 +1,12 @@
+---
+
+- name: "Figure out if {{ _luks_device['name'] }} is opened"
+  stat:
+    path: "/dev/mapper/{{ _luks_device['name'] }}"
+  register: _is_luks
+
+- name: "Delete LUKS device {{ _luks_device['name'] }}"
+  luks_device_reloaded:
+    device: "{{ item['device'] }}"
+    state: 'absent'
+  when: _is_luks.stat.exists | bool

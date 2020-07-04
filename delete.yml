@@ -13,12 +13,11 @@
   vars_files:
     - 'vars/main.yml'
   tasks:
-    - name: 'Close LUKS devices'
-      luks_device_reloaded:
-        device: "{{ item['device'] }}"
-        state: 'absent'
-      when: ansible_facts['devices'][item['device']] is defined
+    - name: 'Include LUKS devices deletion logic'
+      include_tasks: 'delete_luk_devices.yml'
       loop: "{{ luks_devices }}"
+      loop_control:
+        loop_var: _luks_device
 
     - name: 'Remove existing arrays'
       include_tasks: 'tasks/delete_array.yml'
