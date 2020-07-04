@@ -15,8 +15,9 @@
   tasks:
     - name: 'Close LUKS devices'
       luks_device_reloaded:
-        name: "{{ item.device }}"
+        device: "{{ item['device'] }}"
         state: 'absent'
+      when: ansible_facts['devices'][item['device']] is defined
       loop: "{{ luks_devices }}"
 
     - name: 'Remove existing arrays'
