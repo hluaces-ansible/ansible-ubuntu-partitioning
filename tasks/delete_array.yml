@@ -2,9 +2,11 @@
 
 - name: 'Stop tha array'
   command: "mdadm --stop /dev/{{ _array['name'] }}"
+  tags: ['skip_ansible_lint']
 
 - name: 'Remove the superblock for the array devices'
   command: "mdadm --zero-superblock {{ _device }}"
+  tags: ['skip_ansible_lint']
   loop: "{{ _array['devices'] }}"
   loop_control:
     loop_var: _device
