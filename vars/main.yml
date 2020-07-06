@@ -1,6 +1,6 @@
 ---
 
-# Temporary directory used to sture the keyfiles for LUKS encrypted devices
+# Temporary directory used to store the keyfiles for LUKS encrypted devices
 keyfile_path: '/root/luk_keyfiles'
 
 # Disks that will be worked on. The partitions on these disks will be erased.
@@ -71,13 +71,15 @@ raid_arrays:
 # module and, as such, is able to use any of its parameter (link below).
 #
 # The "type" parameter is specifically added to the luks_device_reloaded module
-# and allows to use any other luks encryption type (such as LUKS1, needed if you
+# and allows to use any other LUKS encryption type (such as LUKS1, needed if you
 # want to encrypt a GRUB partition, as it doesn't have LUKS2 capabilities).
 #
 # You can also specify a "password" key on each entry in which case the playbook
 # will add that passphrase to the LUKS device. If you do this I recommend you to
 # encrypt your passwords with Ansible Vault so that they are not here in
 # plaintext.
+#
+# If either keyfile or password are ommited, they won't be used.
 #
 # See:
 # https://docs.ansible.com/ansible/latest/modules/luks_device_module.html
@@ -96,7 +98,7 @@ luks_devices:
     keyfile: 'default'
     password: 'root'
 
-# List of dictionarios of filesystems to create.
+# List of dictionaries of filesystems to create.
 #
 # Each entry of the list can use any key compatible with the filesystem
 # Ansible module.
