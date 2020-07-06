@@ -63,7 +63,21 @@ raid_arrays:
     devices: ['/dev/sda4', '/dev/sdb4']
     level: 'raid0'
 
-# List of LUKs devices that will be created.
+# List of dictionaries of LUKS devices that will be created.
+#
+# Each individual dictionary may use any parameter defined in the
+# "luks_device_reloaded" module which is found on the "library/" directory of
+# this playbook. Mind that it is based on the community "luks_device" Ansible
+# module and, as such, is able to use any of its parameter (link below).
+#
+# The "type" parameter is specifically added to the luks_device_reloaded module
+# and allows to use any other luks encryption type (such as LUKS1, needed if you
+# want to encrypt a GRUB partition, as it doesn't have LUKS2 capabilities).
+#
+# You can also specify a "password" key on each entry in which case the playbook
+# will add that passphrase to the LUKS device. If you do this I recommend you to
+# encrypt your passwords with Ansible Vault so that they are not here in
+# plaintext.
 #
 # See:
 # https://docs.ansible.com/ansible/latest/modules/luks_device_module.html
@@ -71,13 +85,16 @@ luks_devices:
   - name: 'LUKS_BOOT'
     device: '/dev/md0'
     keyfile: 'default'
+    password: 'boot'
     type: 'luks1'
   - name: 'LUKS_SWAP'
     device: '/dev/md1'
     keyfile: 'default'
+    password: 'swap'
   - name: 'LUKS_ROOT'
     device: '/dev/md2'
     keyfile: 'default'
+    password: 'root'
 
 # List of dictionarios of filesystems to create.
 #

@@ -1,0 +1,41 @@
+---
+
+- name: 'Create the LUKS keyfile directory'
+  file:
+    path: "{{ keyfile_path }}"
+    state: 'directory'
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0700'
+  run_once: true
+
+- name: "Copy '{{ _luks_device.name }}' keyfile to the keyfile directory"
+  copy:
+    src: "keyfiles/{{ _luks_device.keyfile }}"
+    dest: "{{ keyfile_path }}/{{ _luks_device.keyfile }}"
+    force: true
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: '0600'
+  when: _luks_device.keyfile is defined
+
+- name: "Create LUKS device '{{ _luks_device.name }}'"
+  luks_device_reloaded:
+    name: "{{ _luks_device.name }}"
+    device: "{{ _luks_device.device }}"
+    state: 'opened'
+    keyfile: "{{ keyfile_path }}/{{ _luks_device.keyfile }}"
+    type: "{{ _luks_device.type | default(omit) }}"
+  register: _luks_device_created
+
+- name: "Set up a passphrase for '{{ _luks_device.name }}'"
+  shell: >-
+    echo -n {{ _luks_device.password }} |
+    cryptsetup luksAddKey
+    --key-file {{ keyfile_path }}/{{ _luks_device.keyfile }}
+    -
+  no_log: true
+  tags: ['skip_ansible_lint']
+  when:
+    - _luks_device_created.changed | default(false)
+    - _luks_device.password is defined
