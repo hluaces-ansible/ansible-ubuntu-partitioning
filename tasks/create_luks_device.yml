@@ -30,9 +30,10 @@
 
 - name: "Set up a passphrase for '{{ _luks_device.name }}'"
   shell: >-
-    echo -n {{ _luks_device.password }} |
+    echo -n "{{ _luks_device.password }}" |
     cryptsetup luksAddKey
     --key-file {{ keyfile_path }}/{{ _luks_device.keyfile }}
+    {{ _luks_device.device }}
     -
   no_log: true
   tags: ['skip_ansible_lint']
