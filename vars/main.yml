@@ -28,14 +28,15 @@ disks:
 # See:
 # https://docs.ansible.com/ansible/latest/modules/parted_module.html
 partitions:
-  # Example EFI partition
+  # Example EFI partition. I'm creating in on both disks to be symmetrical and
+  # have a backup. They are not going to be combined into an array.
   - name: 'efi'
     part_start: '1MiB'
     part_end: '513MiB'
     part_type: 'primary'
     unit: 'MiB'
     flags: ['esp']
-    devices: ['/dev/sda']
+    devices: ['/dev/sda', '/dev/sdb']
   # Boot partition replicated on two disks to form a RAID1 array.
   - name: 'boot'
     part_start: '513MiB'
@@ -71,7 +72,7 @@ raid_arrays:
     metadata: '0.9'
   # raid0 array for "/"
   - name: 'md1'
-    devices: ['/dev/sda4', '/dev/sdb4']
+    devices: ['/dev/sda3', '/dev/sdb3']
     level: 'raid0'
 
 # List of dictionaries of LUKS devices that will be created.
