@@ -1,0 +1,15 @@
+---
+
+# FIXME: ansible_devices doesn't seem to be gathering correct names for the
+# LUKS encrypted devices, even when refreshing facts with "setup".
+- name: "Get the UUID for the LUKS device '{{ _luks_device['name'] }}'"
+  command: "blkid -s UUID -o value /dev/mapper/{{ _luks_device['name'] }}"
+  register: _uuid
+  changed_when: false
+  check_mode: true
+
+- name: "Add device '{{ _luks_device['name'] }}' to the crypttab file"
+  lineinfile:
+    line: "{{ _luks_device['name'] }} UUID={{ _uuid['stdout'] }} none luks"
+    path: "{{ crypttab_file }}"
+    create: true

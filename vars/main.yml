@@ -1,8 +1,5 @@
 ---
 
-# Temporary directory used to store the keyfiles for LUKS encrypted devices
-keyfile_path: '/root/luk_keyfiles'
-
 # Disks that will be used for partitioning. A disk not present in this list
 # won't have any partitions created.
 #
@@ -105,6 +102,13 @@ luks_devices:
     device: '/dev/md1'
     keyfile: 'default'
     password: 'root'
+
+# Path to a crypttab file that will be generated with your LUKS devices.
+# Won't generate any if empty.
+crypttab_file: '/root/crypttab'
+
+# Temporary directory used to store the keyfiles for LUKS encrypted devices
+keyfile_path: '/root/luk_keyfiles'
 
 # List of dictionaries of filesystems to create.
 #

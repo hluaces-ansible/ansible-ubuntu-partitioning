@@ -10,3 +10,15 @@
     device: "{{ _luks_device['device'] }}"
     state: 'absent'
   when: _is_luks.stat.exists | bool
+
+- name: "Delete LUKS keyfile path"
+  file:
+    path: "{{ keyfile_path }}"
+    state: 'absent'
+  run_once: true
+
+- name: "Delete crypttab file"
+  file:
+    path: "{{ keyfile_path }}"
+    state: 'absent'
+  when: keyfile_path | default(false, true) != false
