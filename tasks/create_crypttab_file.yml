@@ -6,7 +6,7 @@
   command: "blkid -s UUID -o value /dev/mapper/{{ _luks_device['name'] }}"
   register: _uuid
   changed_when: false
-  check_mode: true
+  check_mode: false
 
 - name: "Add device '{{ _luks_device['name'] }}' to the crypttab file"
   lineinfile:

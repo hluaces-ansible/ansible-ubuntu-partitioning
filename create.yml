@@ -39,13 +39,6 @@
       loop_control:
         loop_var: _luks_device
 
-    - name: 'Include logic for the creation of the crypttab file'
-      include_tasks: 'tasks/create_crypttab_file.yml'
-      when: crypttab_file | default(false, true) != false
-      loop: luks_devices
-      loop_control:
-        loop_var: _luks_device
-
     - name: 'Create filesystems'
       filesystem:
         dev: "{{ item.dev }}"
@@ -54,3 +47,10 @@
         force: "{{ item.force | default(omit) }}"
         resizefs: "{{ item.resizefs | default(omit) }}"
       loop: "{{ filesystems }}"
+
+    - name: 'Include logic for the creation of the crypttab file'
+      include_tasks: 'tasks/create_crypttab_file.yml'
+      when: crypttab_file | default(false, true) != false
+      loop: "{{ luks_devices }}"
+      loop_control:
+        loop_var: _luks_device
