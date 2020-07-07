@@ -15,9 +15,10 @@
   tasks:
     - name: 'Include disk partition creation logic'
       include_tasks: 'tasks/create_disk_partitions.yml'
-      loop: "{{ disks }}"
+      loop: "{{ partitions }}"
       loop_control:
-        loop_var: _disk
+        loop_var: _partition
+        index_var: _partition_number
 
     - name: 'Flush handlers to inform the kernel of the new partitions'
       meta: 'flush_handlers'

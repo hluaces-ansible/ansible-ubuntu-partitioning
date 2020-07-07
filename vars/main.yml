@@ -3,43 +3,55 @@
 # Temporary directory used to store the keyfiles for LUKS encrypted devices
 keyfile_path: '/root/luk_keyfiles'
 
-# Disks that will be worked on. The partitions on these disks will be erased.
+# Disks that will be used for partitioning. A disk not present in this list
+# won't have any partitions created.
+#
+# Also, any disk listed here will have its partitions completely destroyed when
+# running the delete playbook.
 disks:
   - '/dev/sda'
   - '/dev/sdb'
 
-# List of dictionaries of partitions that will be created on both disks.
+# List of dictionaries of partitions that will be created.
 #
-# Each entry of the list can contain any parameter that the "parted" module
-# for Ansible is able to manage.
+# Each dictionary of the list can contain any parameter that the "parted" module
+# for Ansible is able to manage except the "device" parameter which will be
+# substituted for a new one called "devices" (note the plural).
+#
+# Said parameter is a list, which allows a less-verbose configuration if you
+# want to create symmetrical partitions on several disks for use on a software
+# RAID array.
+#
+# If you don't want to use this feature simply use a single value list on the
+# "devices" parameter.
 #
 # See:
 # https://docs.ansible.com/ansible/latest/modules/parted_module.html
 partitions:
+  # Example EFI partition
   - name: 'efi'
     part_start: '1MiB'
     part_end: '513MiB'
     part_type: 'primary'
     unit: 'MiB'
     flags: ['esp']
+    devices: ['/dev/sda']
+  # Boot partition replicated on two disks to form a RAID1 array.
   - name: 'boot'
     part_start: '513MiB'
     part_end: '1025MiB'
     part_type: 'primary'
     unit: 'MiB'
     flags: ['raid']
-  - name: 'swap'
-    part_start: '1025MiB'
-    part_end: '2047MiB'
-    part_type: 'primary'
-    unit: 'MiB'
-    flags: ['raid']
+    devices: ['/dev/sda', '/dev/sdb']
+  # Root partition replicated on two disks to form a RAID0 array.
   - name: 'root'
-    part_start: '2047MiB'
+    part_start: '1025MiB'
     part_end: '100%'
     part_type: 'primary'
     unit: 'MiB'
     flags: ['raid']
+    devices: ['/dev/sda', '/dev/sdb']
 
 # List of dictionaries of raid devices that will be set up.
 #
@@ -52,14 +64,13 @@ partitions:
 # - name: another partition
 #   ...
 raid_arrays:
+  # rai1 array for "/boot"
   - name: 'md0'
     devices: ['/dev/sda2', '/dev/sdb2']
     level: 'raid1'
     metadata: '0.9'
+  # raid0 array for "/"
   - name: 'md1'
-    devices: ['/dev/sda3', '/dev/sdb3']
-    level: 'raid0'
-  - name: 'md2'
     devices: ['/dev/sda4', '/dev/sdb4']
     level: 'raid0'
 
@@ -89,12 +100,8 @@ luks_devices:
     keyfile: 'default'
     password: 'boot'
     type: 'luks1'
-  - name: 'LUKS_SWAP'
-    device: '/dev/md1'
-    keyfile: 'default'
-    password: 'swap'
   - name: 'LUKS_ROOT'
-    device: '/dev/md2'
+    device: '/dev/md1'
     keyfile: 'default'
     password: 'root'
 
@@ -111,7 +118,5 @@ filesystems:
     opts: '-F32'
   - dev: '/dev/mapper/LUKS_BOOT'
     fstype: 'ext4'
-  - dev: '/dev/mapper/LUKS_SWAP'
-    fstype: 'swap'
   - dev: '/dev/mapper/LUKS_ROOT'
     fstype: 'ext4'

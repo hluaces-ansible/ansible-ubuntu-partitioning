@@ -1,8 +1,8 @@
 ---
 
-- name: "Create disk partitions for {{ _disk }}"
+- name: "Create partition '{{ _partition.name }}'"
   parted:
-    device: "{{ _disk }}"
+    device: "{{ _device }}"
     name: "{{ _partition['name'] | default(omit) }}"
     label: "{{ _partition['label'] | default('gpt') }}"
     part_start: "{{ _partition['part_start'] | default(omit) }}"
@@ -12,8 +12,8 @@
     flags: "{{ _partition['flags'] | default(omit) }}"
     number: "{{ _partition_number + 1 }}"
     state: 'present'
+  when: '_device in disks'
   notify: ['reload udev', 'reload systemd']
-  loop: "{{ partitions }}"
+  loop: "{{ _partition['devices'] }}"
   loop_control:
-    loop_var: _partition
-    index_var: _partition_number
+    loop_var: _device
