@@ -1,0 +1,141 @@
+---
+
+# Disks that will be used for partitioning. A disk not present in this list
+# won't have any partitions created.
+#
+# Also, any disk listed here will have its partitions completely destroyed when
+# running the delete playbook.
+disks:
+  - '/dev/nvme1n1'
+  - '/dev/nvme0n1'
+
+# List of dictionaries of partitions that will be created.
+#
+# Each dictionary of the list can contain any parameter that the "parted" module
+# for Ansible is able to manage except the "device" parameter which will be
+# substituted for a new one called "devices" (note the plural).
+#
+# Said parameter is a list, which allows a less-verbose configuration if you
+# want to create symmetrical partitions on several disks for use on a software
+# RAID array.
+#
+# If you don't want to use this feature simply use a single value list on the
+# "devices" parameter.
+#
+# See:
+# https://docs.ansible.com/ansible/latest/modules/parted_module.html
+partitions:
+  # Example EFI partition. I'm creating in on both disks to be symmetrical and
+  # have a backup. They are not going to be combined into an array.
+  - name: 'efi'
+    part_start: '1MiB'
+    part_end: '513MiB'
+    part_type: 'primary'
+    unit: 'MiB'
+    flags: ['esp']
+    devices: ['/dev/nvme1n1', '/dev/nvme0n1']
+  # Boot partition replicated on two disks to form a RAID1 array.
+  - name: 'boot'
+    part_start: '513MiB'
+    part_end: '1025MiB'
+    part_type: 'primary'
+    unit: 'MiB'
+    flags: ['raid']
+    devices: ['/dev/nvme1n1', '/dev/nvme0n1']
+  # Root partition replicated on two disks to form a RAID0 array.
+  - name: 'swap'
+    part_start: '1025MiB'
+    part_end: '64GiB'
+    part_type: 'primary'
+    unit: 'GiB'
+    flags: ['raid']
+    devices: ['/dev/nvme1n1', '/dev/nvme0n1']
+  - name: 'root'
+    part_start: '64GiB'
+    part_end: '100%'
+    part_type: 'primary'
+    unit: 'GiB'
+    flags: ['raid']
+    devices: ['/dev/nvme1n1', '/dev/nvme0n1']
+# List of dictionaries of raid devices that will be set up.
+#
+# Format:
+#
+# - name: device name on /dev for the array
+#   devices: list of paths to the partitions that will be forming the array
+#   level: raid level of the array
+#   metadata: metadata level of the array
+# - name: another partition
+#   ...
+raid_arrays:
+  # rai1 array for "/boot"
+  - name: 'md0'
+    devices: ['/dev/nvme1n1p2', '/dev/nvme0n1p2']
+    level: 'raid1'
+    metadata: '0.9'
+  # raid0 array for "/"
+  - name: 'md1'
+    level: 'raid0'
+    devices: ['/dev/nvme1n1p3', '/dev/nvme0n1p3']
+  # raid0 array for "/"
+  - name: 'md2'
+    level: 'raid0'
+    devices: ['/dev/nvme1n1p4', '/dev/nvme0n1p4']
+# List of dictionaries of LUKS devices that will be created.
+#
+# Each individual dictionary may use any parameter defined in the
+# "luks_device_reloaded" module which is found on the "library/" directory of
+# this playbook. Mind that it is based on the community "luks_device" Ansible
+# module and, as such, is able to use any of its parameter (link below).
+#
+# The "type" parameter is specifically added to the luks_device_reloaded module
+# and allows to use any other LUKS encryption type (such as LUKS1, needed if you
+# want to encrypt a GRUB partition, as it doesn't have LUKS2 capabilities).
+#
+# You can also specify a "password" key on each entry in which case the playbook
+# will add that passphrase to the LUKS device. If you do this I recommend you to
+# encrypt your passwords with Ansible Vault so that they are not here in
+# plaintext.
+#
+# If either keyfile or password are ommited, they won't be used.
+#
+# See:
+# https://docs.ansible.com/ansible/latest/modules/luks_device_module.html
+luks_devices:
+  - name: 'LUKS_BOOT'
+    device: '/dev/md0'
+    keyfile: 'default'
+    password: 'password'
+    type: 'luks1'
+  - name: 'LUKS_SWAP'
+    device: '/dev/md1'
+    keyfile: 'default'
+    password: 'password'
+  - name: 'LUKS_ROOT'
+    device: '/dev/md2'
+    keyfile: 'default'
+    password: 'password'
+# Path to a crypttab file that will be generated with your LUKS devices.
+# Won't generate any if empty.
+crypttab_file: '/root/crypttab'
+
+# Temporary directory used to store the keyfiles for LUKS encrypted devices
+keyfile_path: '/root/luk_keyfiles'
+
+# List of dictionaries of filesystems to create.
+#
+# Each entry of the list can use any key compatible with the filesystem
+# Ansible module.
+#
+# See:
+# https://docs.ansible.com/ansible/latest/modules/filesystem_module.html
+filesystems:
+  - dev: '/dev/nvme1n1p1'
+    fstype: 'vfat'
+    opts: '-F32'
+  - dev: '/dev/mapper/LUKS_BOOT'
+    fstype: 'ext4'
+  - dev: '/dev/mapper/LUKS_ROOT'
+    fstype: 'ext4'
+  - dev: '/dev/mapper/LUKS_SWAP'
+    fstype: 'swap'
